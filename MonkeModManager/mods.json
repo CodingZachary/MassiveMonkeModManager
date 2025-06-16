@@ -1,11 +1,11 @@
 [
   {
-    "ModName": "Who Is That Monke",
+    "name": "Who Is That Monke",
     "URL": "https://github.com/HanSolo1OOOFalcon/WhoIsThatMonke/releases/download/v1.0.3/WhoIsThatMonke.dll",
     "Version": "1.0.3"
   },
   {
-    "ModName": "Gorilla Stats",
+    "name": "Gorilla Stats",
     "URL": "https://github.com/arielthemonke/GorillaStats/releases/download/v1.1.0/GorillaStats.dll",
     "Version": "1.1.0"
   }

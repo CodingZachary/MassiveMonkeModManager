@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Newtonsoft.Json;
@@ -85,7 +86,7 @@ public partial class MainWindow : Window
     public async Task LoadModsFromTheNewGitHubRepoAsync()
     {
         using var client = new HttpClient();
-        const string url = "https://raw.githubusercontent.com/arielthemonke/ModInfo/main/mods.json";
+        const string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/modinfo.json";
 
         try
         {
@@ -141,23 +142,9 @@ public partial class MainWindow : Window
         MessageBox0.Text = "Game path saved successfully!";
     }
 
-    private async Task UpdateModsDisplay(List<Mod> mods)
-    {
-        ItemControl0.Items.Clear();
-        Mods.Clear();
-        
-        foreach (var mod in mods)
-        {
-            Mods.Add(mod);
-            var modControl = MakeModControl(mod);
-            ItemControl0.Items.Add(modControl);
-        }
-        
-        MessageBox0.Text = $"loadfed {mods.Count} mods successfully!";
-    }
-
     private Border MakeModControl(Mod mod)
     {
+        
         var border = new Border
         {
             BorderThickness = new Thickness(2),
@@ -177,9 +164,19 @@ public partial class MainWindow : Window
             Spacing = 6
         };
 
+        var scrollViewerPlsWorkPlsPls = new ScrollViewer
+        {
+            Content = contentStack,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+        };
+
+        Grid.SetColumn(scrollViewerPlsWorkPlsPls, 0);
+        mainGrid.Children.Add(scrollViewerPlsWorkPlsPls);
+
         var nameTextBlock = new TextBlock
         {
-            Text = mod.ModName,
+            Text = mod.name,
             FontSize = 18,
             FontWeight = FontWeight.Bold,
             Foreground = Brushes.DarkBlue
@@ -187,7 +184,7 @@ public partial class MainWindow : Window
 
         var urlTextBlock = new TextBlock
         {
-            Text = mod.URL,
+            Text = mod.download_url,
             FontSize = 11,
             Foreground = Brushes.Gray,
             TextWrapping = TextWrapping.Wrap
@@ -197,7 +194,6 @@ public partial class MainWindow : Window
         var statusText = new TextBlock
         {
             Text = isInstalled ? "\u2713 Installed" : "Not installed",
-            // unicode2713 for v sign
             FontSize = 12,
             Foreground = isInstalled ? Brushes.Green : Brushes.Orange
         };
@@ -247,22 +243,20 @@ public partial class MainWindow : Window
 
         buttonStack.Children.Add(installButton);
 
-        Grid.SetColumn(contentStack, 0);
         Grid.SetColumn(buttonStack, 1);
-
-        mainGrid.Children.Add(contentStack);
         mainGrid.Children.Add(buttonStack);
 
         border.Child = mainGrid;
         return border;
     }
 
+
     private bool IsModInstalled(Mod mod)
     {
         if (string.IsNullOrEmpty(pluginsPath) || !Directory.Exists(pluginsPath))
             return false;
 
-        var FileName = $"{mod.ModName}.dll";
+        var FileName = $"{mod.name}.dll";
         return File.Exists(Path.Combine(pluginsPath, FileName));
     }
 
@@ -272,10 +266,10 @@ public partial class MainWindow : Window
         {
             installButton.IsEnabled = false;
             installButton.Content = "Installing...";
-            MessageBox0.Text = $"Installing {mod.ModName}...";
+            MessageBox0.Text = $"Installing {mod.name}...";
 
-            var fileName = $"{mod.ModName}.dll";
-            var downloadPath = await DownloadFile(mod.URL, fileName);
+            var fileName = $"{mod.name}.dll";
+            var downloadPath = await DownloadFile(mod.download_url, fileName);
 
             Directory.CreateDirectory(pluginsPath);
 
@@ -292,11 +286,11 @@ public partial class MainWindow : Window
             installButton.Content = "Reinstall";
             installButton.Background = Brushes.Orange;
 
-            MessageBox0.Text = $"Successfully installed {mod.ModName}!";
+            MessageBox0.Text = $"Successfully installed {mod.name}!";
         }
         catch (Exception ex)
         {
-            await ShowErrorMessage($"Failed to install {mod.ModName}: {ex.Message}");
+            await ShowErrorMessage($"Failed to install {mod.name}: {ex.Message}");
         }
         finally
         {
@@ -308,7 +302,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var fileName = $"{mod.ModName}.dll";
+            var fileName = $"{mod.name}.dll";
             var filePath = Path.Combine(pluginsPath, fileName);
 
             if (File.Exists(filePath))
@@ -325,12 +319,12 @@ public partial class MainWindow : Window
                     parent.Children.Remove(uninstallButton);
                 }
 
-                MessageBox0.Text = $"uninstalled {mod.ModName}!";
+                MessageBox0.Text = $"uninstalled {mod.name}!";
             }
         }
         catch (Exception ex)
         {
-            await ShowErrorMessage($"coouldnt uninstall {mod.ModName} {ex.Message}");
+            await ShowErrorMessage($"coouldnt uninstall {mod.name} {ex.Message}");
         }
     }
 
@@ -593,8 +587,10 @@ public partial class MainWindow : Window
 
 public class Mod
 {
-    public string ModName { get; set; }
-    public string URL { get; set; }
+    public string name { get; set; }
+    public string author { get; set; }
+    public string version { get; set; }
+    public string download_url { get; set; }
 }
 
 public class Config

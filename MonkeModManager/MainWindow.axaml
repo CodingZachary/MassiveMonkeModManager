@@ -7,15 +7,20 @@
         Title="MonkeModManager">
         
         <StackPanel>
-                <TextBlock Text="mmm5" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"></TextBlock>
-                <Border BorderThickness="2" BorderBrush="Gray" CornerRadius="10" Margin="10, 10, 10, 0">
-                        <ScrollViewer>
-                                <StackPanel>
-                                        <ItemsControl Name="ItemControl0">
-                                        </ItemsControl>
-                                </StackPanel>
+                <TextBlock Text="mmm5" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+
+                <Border BorderThickness="2" BorderBrush="Gray" CornerRadius="10" Margin="10,10,10,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl Name="ItemControl0">
+                                        <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                        <StackPanel />
+                                                </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                </ItemsControl>
                         </ScrollViewer>
                 </Border>
-                <TextBlock Name="MessageBox0"></TextBlock>
+
+                <TextBlock Name="MessageBox0" />
         </StackPanel>
 </Window>
