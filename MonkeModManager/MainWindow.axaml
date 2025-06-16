@@ -4,23 +4,49 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MonkeModManager.MainWindow"
-        Title="MonkeModManager">
+        Title="MonkeModManager"
+        MinWidth="600" MinHeight="400">
         
-        <StackPanel>
-                <TextBlock Text="mmm5" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
-
-                <Border BorderThickness="2" BorderBrush="Gray" CornerRadius="10" Margin="10,10,10,0">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid>
+                <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" 
+                          Text="Monke Mod Manager" 
+                          FontSize="24" 
+                          FontWeight="Bold"
+                          HorizontalAlignment="Center" 
+                          Margin="10,15,10,10" 
+                          Foreground="DarkBlue" />
+                <Border Grid.Row="1" 
+                        BorderThickness="2" 
+                        BorderBrush="LightGray" 
+                        CornerRadius="10" 
+                        Margin="10"
+                        Background="White">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     Padding="8">
                                 <ItemsControl Name="ItemControl0">
                                         <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
-                                                        <StackPanel />
+                                                        <StackPanel Spacing="6" />
                                                 </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                 </ItemsControl>
                         </ScrollViewer>
                 </Border>
-
-                <TextBlock Name="MessageBox0" />
-        </StackPanel>
+                <Border Grid.Row="2" 
+                        Background="LightGray" 
+                        Padding="10,5"
+                        BorderThickness="0,1,0,0"
+                        BorderBrush="Gray">
+                        <TextBlock Name="MessageBox0" 
+                                  Text="Ready" 
+                                  FontSize="12"
+                                  VerticalAlignment="Center" />
+                </Border>
+        </Grid>
 </Window>
