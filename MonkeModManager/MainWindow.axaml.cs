@@ -10,6 +10,7 @@ using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Newtonsoft.Json;
@@ -22,6 +23,7 @@ public partial class MainWindow : Window
     private string gamePath;
     private string pluginsPath;
     private readonly HttpClient httpClient = new();
+    private bool isDark = false;
 
     public MainWindow()
     {
