@@ -6,10 +6,11 @@
         x:Class="MonkeModManager.MainWindow"
         Title="MonkeModManager"
         MinWidth="600" MinHeight="400"
+        Name="MainWin"
         >
 
         
-        <Grid>
+        <Grid Name="MainGrid">
                 <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -17,17 +18,35 @@
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" 
                           Text="Monke Mod Manager" 
+                          Name="TitleText"
                           FontSize="24" 
                           FontWeight="Bold"
                           HorizontalAlignment="Center" 
                           Margin="10,15,10,10" 
                           Foreground="DarkBlue" />
+                <Button Grid.Row="0" Name="DropDownBtn" 
+                        Margin="10"
+                        Height="35"
+                        Width="150"
+                        Background="Green"
+                        Click="ShowDropdown_Click">
+                        <TextBlock Text="More Options" TextAlignment="Center" FontWeight="Bold" Foreground="White"/>
+                        <Button.ContextMenu>
+                                <ContextMenu x:Name="BtnDropdown">
+                                        <MenuItem Header="Install From Disk" Click="InstallFromDiskBtn_OnClick"/>
+                                        <MenuItem Header="Change Theme" Click="SwitchTheme"/>
+                                        <MenuItem Header="Mods Folder" Click="OpenModsFolder_OnClick"/>
+                                        <MenuItem Header="Game Folder" Click="OpenGamePath_OnClick"/>
+                                        <!--<MenuItem Header="Install All" Click="InstallAll"/>-->
+                                        <MenuItem Header="Launch Game" Click="LaunchBtn_OnClick"/>
+                                </ContextMenu>
+                        </Button.ContextMenu>
+                </Button>
                 <Border Grid.Row="1" 
-                        BorderThickness="2" 
-                        BorderBrush="LightGray" 
+                        BorderThickness="2"
                         CornerRadius="10" 
                         Margin="10"
-                        Background="White">
+                        Name="ModsThingy">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                      HorizontalScrollBarVisibility="Disabled"
                                      Padding="8">
@@ -41,7 +60,7 @@
                         </ScrollViewer>
                 </Border>
                 <Border Grid.Row="2" 
-                        Background="LightGray" 
+                        Name="MsgBox0Border"
                         Padding="10,5"
                         BorderThickness="0,1,0,0"
                         BorderBrush="Gray">
