@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -82,6 +83,12 @@ public partial class MainWindow : Window
         }
         pluginsPath = Path.Combine(gamePath, "BepInEx", "plugins");
 
+        var (updateAvailable, newVersion) = await IsUpdateAvailable(new Version(1, 2));
+
+        if (updateAvailable)
+        {
+            await NewVersionDialog(newVersion);
+        }
         CurrentTheme = GetTheme();
         switch (CurrentTheme)
         {
@@ -170,6 +177,25 @@ public partial class MainWindow : Window
         };
 
         client.Initialize();
+    }
+
+    public static async Task<(bool UpdateAvailable, Version LatestVersion)> IsUpdateAvailable(Version currentVersion)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "ModManager");
+
+            string url = "https://raw.githubusercontent.com/arielthemonke/MonkeModManager/main/version";
+            string response = await client.GetStringAsync(url);
+            var latestVersion = Version.Parse(response);
+
+            return (currentVersion < latestVersion, latestVersion);
+        }
+        catch
+        {
+            return (false, currentVersion);
+        }
     }
     #endregion
     
@@ -313,9 +339,28 @@ public partial class MainWindow : Window
     }
     void RestartApp()
     {
-        var exePath = Assembly.GetExecutingAssembly().Location;
-        Process.Start(exePath);
-        Environment.Exit(0);
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = exePath,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
+        else
+        {
+            Environment.Exit(0);
+        }
     }
 
     private Border MakeModControl(Mod mod)
@@ -1224,6 +1269,57 @@ public partial class MainWindow : Window
 
         errorDialog.Content = content;
         await errorDialog.ShowDialog(this);
+    }
+    #endregion
+    
+    #region Version Checking Stuff
+
+    private async Task NewVersionDialog(Version version)
+    {
+        var dialog = new Window
+        {
+            Title = "New Version Available!!!",
+            Width = 500,
+            Height = 250,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+
+        var content = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 15
+        };
+
+        dialog.Content = content;
+
+        var text = new TextBlock
+        {
+            Text = "New Version Available",
+            TextWrapping = TextWrapping.Wrap,
+        };
+
+        var installBtn = new Button
+        {
+            Content = "Install",
+        };
+        installBtn.Click += async (sender, e) =>
+        {
+            var url = "https://github.com/arielthemonke/MonkeModManager/releases/latest";
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        };
+
+        var closeBtn = new Button
+        {
+            Content = "Close",
+        };
+        closeBtn.Click += async (sender, e) =>
+        {
+            dialog.Close();
+        };
+        content.Children.Add(installBtn);
+        content.Children.Add(closeBtn);
+        content.Children.Add(text);
+        await dialog.ShowDialog(dialog);
     }
     #endregion
     
