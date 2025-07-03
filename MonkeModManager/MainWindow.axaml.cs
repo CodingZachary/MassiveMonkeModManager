@@ -1316,10 +1316,11 @@ public partial class MainWindow : Window
         {
             dialog.Close();
         };
+        content.Children.Add(text);
         content.Children.Add(installBtn);
         content.Children.Add(closeBtn);
-        content.Children.Add(text);
-        await dialog.ShowDialog(dialog);
+        var owner = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        await dialog.ShowDialog(owner);
     }
     #endregion
     
