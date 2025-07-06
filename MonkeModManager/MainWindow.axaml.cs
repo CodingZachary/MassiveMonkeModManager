@@ -7,7 +7,6 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -32,6 +31,7 @@ public partial class MainWindow : Window
     private readonly HttpClient httpClient = new();
     Theme CurrentTheme;
     private DiscordRpcClient client;
+    private List<ModBorderThingyForDictionary> modBorders = new();
     #endregion
     
     #region Window And Init
@@ -212,9 +212,18 @@ public partial class MainWindow : Window
     {
         try
         {
-            var json = File.ReadAllText(GetConfigPath());
+            var configPath = GetConfigPath();
+            if (!File.Exists(configPath))
+            {
+                var defaultConfig = new Config { Theme = MonkeModManager.Theme.Light };
+                File.WriteAllText(configPath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));
+                return defaultConfig.Theme;
+            }
+
+            var json = File.ReadAllText(configPath);
             var config = JsonConvert.DeserializeObject<Config>(json);
-            if (!string.IsNullOrWhiteSpace(config.Theme.ToString()))
+
+            if (config?.Theme != null)
             {
                 return config.Theme;
             }
@@ -225,10 +234,9 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
-            throw;
+            Console.WriteLine($"Error loading theme: {ex}");
+            return MonkeModManager.Theme.Light;
         }
-        
     }
     #endregion
 
@@ -513,6 +521,14 @@ public partial class MainWindow : Window
         contentStack.Name = "ContentStack";
 
         border.Child = mainGrid;
+        var thisBorder = new ModBorderThingyForDictionary
+        {
+            border = border,
+            InstallButton = installButton,
+            ModAssigned = mod,
+        };
+        
+        modBorders.Add(thisBorder);
         
         switch (CurrentTheme)
         {
@@ -667,7 +683,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task InstallMod(Mod mod, Button installButton, TextBlock statusText)
+    private async Task InstallMod(Mod mod, Button installButton, TextBlock statusText, Mod ModSender = null)
     {
         if (mod == null)
             throw new ArgumentNullException(nameof(mod));
@@ -678,6 +694,23 @@ public partial class MainWindow : Window
             {
                 installButton.IsEnabled = false;
                 installButton.Content = "Installing...";
+            }
+
+            if (mod.Dependencies.Any())
+            {
+                foreach (var dependency in mod.Dependencies)
+                {
+                    foreach (var modBorder in modBorders)
+                    {
+                        if (modBorder.ModAssigned != ModSender)
+                        {
+                            if (modBorder.ModAssigned.ModName == dependency)
+                            {
+                                await InstallMod(modBorder.ModAssigned, modBorder.InstallButton, modBorder.StatusText, mod);
+                            }
+                        }
+                    }
+                }
             }
             MessageBox0.Text = $"Installing {mod.Name}...";
 
@@ -1097,7 +1130,14 @@ public partial class MainWindow : Window
         try
         {
             if (!File.Exists(GetConfigPath()))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(GetConfigPath()));
+                File.WriteAllText(GetConfigPath(), JsonConvert.SerializeObject(new Config
+                {
+                    GamePath = ""
+                }, Formatting.Indented));
                 return null;
+            }
 
             var json = File.ReadAllText(GetConfigPath());
             var config = JsonConvert.DeserializeObject<Config>(json);
@@ -1370,10 +1410,9 @@ public partial class MainWindow : Window
 
     void InstallAll(object? sender, RoutedEventArgs e)
     {
-        foreach (var mod in Mods)
+        foreach (var mod in modBorders)
         {
-            _ = SilentInstall(mod.URL);
-            Console.WriteLine($"Installed {mod.Name} from {mod.URL}");
+            _ = InstallMod(mod.ModAssigned, mod.InstallButton, mod.StatusText);
         }
     }
 
@@ -1427,5 +1466,13 @@ public class Config
 {
     public string GamePath { get; set; }
     public Theme Theme { get; set; }
+}
+
+public class ModBorderThingyForDictionary
+{
+    public Border border { get; set; }
+    public Button InstallButton { get; set; }
+    public TextBlock StatusText { get; set; }
+    public Mod ModAssigned { get; set; }
 }
 #endregion

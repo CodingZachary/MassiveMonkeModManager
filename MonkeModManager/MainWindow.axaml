@@ -37,8 +37,8 @@
                                         <MenuItem Header="Change Theme" Click="SwitchTheme"/>
                                         <MenuItem Header="Mods Folder" Click="OpenModsFolder_OnClick"/>
                                         <MenuItem Header="Game Folder" Click="OpenGamePath_OnClick"/>
-                                        <!--<MenuItem Header="Install All" Click="InstallAll"/>-->
                                         <MenuItem Header="Launch Game" Click="LaunchBtn_OnClick"/>
+                                        <!--<MenuItem Header="Install All Mods" Click="InstallAll"/>-->
                                 </ContextMenu>
                         </Button.ContextMenu>
                 </Button>
