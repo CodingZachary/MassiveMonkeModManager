@@ -292,7 +292,7 @@ public partial class MainWindow : Window
     
     public async Task fixBepInExConfig()
     {
-        string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/main/BepInEx.cfg";
+        string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/BepInEx.cfg";
         string configPath = Path.Combine(gamePath, "BepInEx", "config", "BepInEx.cfg");
 
         try
@@ -1038,6 +1038,7 @@ public partial class MainWindow : Window
                 
                 File.Delete(tempPath);
                 await fixBepInExConfig();
+                await FixUEConfig();
                 MessageBox0.Text = "BepInEx installed successfully!";
                 
                 return true;
