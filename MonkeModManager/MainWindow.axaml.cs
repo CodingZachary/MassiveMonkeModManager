@@ -514,9 +514,10 @@ public partial class MainWindow : Window
             await InstallMod(mod, installButton, statusText);
         };
 
+        Button uninstallButton = null;
         if (isInstalled)
         {
-            var uninstallButton = new Button
+            uninstallButton = new Button
             {
                 Content = "Uninstall",
                 Background = Brushes.Red,
@@ -547,6 +548,8 @@ public partial class MainWindow : Window
         {
             border = border,
             InstallButton = installButton,
+            StatusText = statusText,
+            UninstallButton = uninstallButton,
             ModAssigned = mod,
         };
         
@@ -717,23 +720,6 @@ public partial class MainWindow : Window
                 installButton.IsEnabled = false;
                 installButton.Content = "Installing...";
             }
-
-            if (mod.Dependencies.Any())
-            {
-                foreach (var dependency in mod.Dependencies)
-                {
-                    foreach (var modBorder in modBorders)
-                    {
-                        if (modBorder.ModAssigned != ModSender)
-                        {
-                            if (modBorder.ModAssigned.ModName == dependency)
-                            {
-                                await InstallMod(modBorder.ModAssigned, modBorder.InstallButton, modBorder.StatusText, mod);
-                            }
-                        }
-                    }
-                }
-            }
             MessageBox0.Text = $"Installing {mod.Name}...";
 
             var installLocation = !string.IsNullOrEmpty(mod.InstallLocation) 
@@ -822,13 +808,10 @@ public partial class MainWindow : Window
                 File.Move(downloadPath, targetPath);
             }
 
-            if (statusText != null && installButton != null)
-            {
-                statusText.Text = "✓ Installed";
-                statusText.Foreground = Brushes.Green;
-                installButton.Content = "Reinstall";
-                installButton.Background = Brushes.Orange;
-            }
+            statusText.Text = "✓ Installed";
+            statusText.Foreground = Brushes.Green;
+            installButton.Content = "Reinstall";
+            installButton.Background = Brushes.Orange;
 
             MessageBox0.Text = $"Successfully installed {mod.Name} v{mod.Version}!";
         }
@@ -844,6 +827,22 @@ public partial class MainWindow : Window
         finally
         {
             installButton.IsEnabled = true;
+        }
+        if (mod.Dependencies.Any())
+        {
+            foreach (var dependency in mod.Dependencies)
+            {
+                foreach (var modBorder in modBorders)
+                {
+                    if (modBorder.ModAssigned != ModSender)
+                    {
+                        if (modBorder.ModAssigned.ModName == dependency)
+                        {
+                            await InstallMod(modBorder.ModAssigned, modBorder.InstallButton, modBorder.StatusText, mod);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1492,6 +1491,7 @@ public class ModBorderThingyForDictionary
     public Border border { get; set; }
     public Button InstallButton { get; set; }
     public TextBlock StatusText { get; set; }
+    public Button UninstallButton { get; set; }
     public Mod ModAssigned { get; set; }
 }
 #endregion
