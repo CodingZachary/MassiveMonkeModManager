@@ -292,7 +292,7 @@ public partial class MainWindow : Window
     
     public async Task fixBepInExConfig()
     {
-        string url = "https://raw.githubusercontent.com/arielthemonke/ModInfo/main/BepInEx.cfg";
+        string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/main/BepInEx.cfg";
         string configPath = Path.Combine(gamePath, "BepInEx", "config", "BepInEx.cfg");
 
         try
@@ -308,6 +308,28 @@ public partial class MainWindow : Window
         {
             Console.WriteLine($"never mind, it didnt work :sob: {ex.Message}");
             await ShowErrorMessage("it didnt work. error code: 50000000");
+        }
+    }
+
+    async Task FixUEConfig()
+    {
+        string url =
+            "https://raw.githubusercontent.com/arielthemonke/ModInfo/refs/heads/main/com.sinai.unityexplorer.cfg";
+        string configPath = Path.Combine(gamePath, "BepInEx", "config", "com.sinai.unityexplorer.cfg");
+
+        try
+        {
+            using var client = new HttpClient();
+            var configContent = await client.GetStringAsync(url);
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
+            await File.WriteAllTextAsync(configPath, configContent);
+
+            Console.WriteLine("yay i did a thing! x2");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"never mind, it didnt work :sob: {ex.Message}");
+            await ShowErrorMessage("it didnt work. error code: 50000001");
         }
     }
     #endregion
