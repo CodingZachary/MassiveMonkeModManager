@@ -1172,16 +1172,6 @@ public partial class MainWindow : Window
             Spacing = 15
         };
 
-        switch (CurrentTheme)
-        {
-            case MonkeModManager.Theme.Light:
-                stackPanel.Background = Brushes.White;
-                break;
-            case MonkeModManager.Theme.Dark:
-                stackPanel.Background = Brushes.DarkBlue;
-                break;
-        }
-
         stackPanel.Children.Add(new TextBlock
         {
             Text = "Select your game path:",
