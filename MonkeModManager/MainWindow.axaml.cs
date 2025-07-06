@@ -83,7 +83,7 @@ public partial class MainWindow : Window
         }
         pluginsPath = Path.Combine(gamePath, "BepInEx", "plugins");
 
-        var (updateAvailable, newVersion) = await IsUpdateAvailable(new Version(1, 2, 1));
+        var (updateAvailable, newVersion) = await IsUpdateAvailable(new Version(1, 2, 2));
 
         if (updateAvailable)
         {
