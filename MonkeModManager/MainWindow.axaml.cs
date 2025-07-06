@@ -806,13 +806,19 @@ public partial class MainWindow : Window
             }
             else
             {
-                var targetPath = Path.Combine(targetDirectory, fileName);
-                
+                var modFolder = Path.Combine(targetDirectory, mod.Name);
+                if (!Directory.Exists(modFolder))
+                {
+                    Directory.CreateDirectory(modFolder);
+                }
+
+                var targetPath = Path.Combine(modFolder, fileName);
+
                 if (File.Exists(targetPath))
                 {
                     File.Delete(targetPath);
                 }
-                
+
                 File.Move(downloadPath, targetPath);
             }
 
