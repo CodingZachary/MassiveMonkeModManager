@@ -248,47 +248,56 @@ public partial class MainWindow : Window
     };
 
     public async Task LoadModsFromTheNewGitHubRepoAsync()
-    {
-        using var client = new HttpClient();
-        const string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/modinfo.json";
+{
+    using var client = new HttpClient();
+    const string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/modinfo.json";
 
-        try
+    try
+    {
+        var json = await client.GetStringAsync(url);
+        var mods = JsonConvert.DeserializeObject<List<Mod>>(json);
+        Mods.Clear();
+        ItemControl0.Items.Clear();
+
+        if (mods != null)
         {
-            var json = await client.GetStringAsync(url);
-            var mods = JsonConvert.DeserializeObject<List<Mod>>(json);
-            Mods.Clear();
-            ItemControl0.Items.Clear();
-        
-            if (mods != null)
+            int loadedCount = 0;
+            int blacklistedCount = 0;
+
+            var filtered = mods
+                .Where(m => !BlacklistedMods.Contains(m.Name, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            blacklistedCount = mods.Count - filtered.Count;
+
+            var grouped = filtered
+                .GroupBy(m => string.IsNullOrWhiteSpace(m.Group) ? "Uncategorized" : m.Group)
+                .OrderBy(g => g.Key);
+
+            foreach (var group in grouped)
             {
-                var loadedCount = 0;
-                var blacklistedCount = 0;
-            
-                foreach (var mod in mods)
+                var header = new Label { Content = $"-- {group.Key} --" };
+                ItemControl0.Items.Add(header);
+
+                foreach (var mod in group.OrderBy(m => m.Name))
                 {
-                    if (BlacklistedMods.Contains(mod.Name))
-                    {
-                        blacklistedCount++;
-                        Console.WriteLine($"skipped: {mod.Name}");
-                        continue;
-                    }
-                
                     Mods.Add(mod);
                     var modControl = MakeModControl(mod);
                     ItemControl0.Items.Add(modControl);
                     loadedCount++;
                 }
-            
-                Console.WriteLine($"loaded {loadedCount} mods, skipped {blacklistedCount} blacklisted mods");
-                // even counting!! not that anyone will read this but yeah
+            }
+
+            Console.WriteLine($"loaded {loadedCount} mods, skipped {blacklistedCount} blacklisted mods");
+            // even counting!! not that anyone will read this but yeah
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Loading mods failed: {ex.Message}");
-            await ShowErrorMessage("Couldn't load the mod list from GitHub.");
-        }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Loading mods failed: {ex.Message}");
+        await ShowErrorMessage("Couldn't load the mod list from GitHub.");
     }
+}
     
     public async Task fixBepInExConfig()
     {
