@@ -1,3 +1,4 @@
+#region usings
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,10 +15,13 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using DiscordRPC;
 using Newtonsoft.Json;
 using Button = Avalonia.Controls.Button;
+#endregion
 
 namespace MonkeModManager;
 
@@ -25,18 +29,24 @@ public partial class MainWindow : Window
 {
     #region Properties
     public ObservableCollection<Mod> Mods { get; } = new();
-    private static List<Border> ModControls = new();
     private string gamePath;
     private string pluginsPath;
     private readonly HttpClient httpClient = new();
     Theme CurrentTheme;
     private DiscordRpcClient client;
     private List<ModBorderThingyForDictionary> modBorders = new();
+    public static MainWindow Instance;
+    List<TextBlock> textBlocks = new();
+    List<TextBlock> secondaryTextBlocks = new();
+    List<TextBlock> GroupTextBlocks = new();
+    List<TextBlock> OtherGroupTextBlocks = new();
+    private static List<Border> ModControls = new();
     #endregion
     
     #region Window And Init
     public MainWindow()
     {
+        Instance = this;
         DataContext = this;
         InitializeComponent();
         
@@ -44,6 +54,8 @@ public partial class MainWindow : Window
         {
             try
             {
+                Opacity = 0;
+                ShowStartWindow();
                 await InitializeAsync();
             }
             catch (Exception ex)
@@ -90,53 +102,132 @@ public partial class MainWindow : Window
             await NewVersionDialog(newVersion);
         }
         CurrentTheme = GetTheme();
-        switch (CurrentTheme)
-        {
-            case MonkeModManager.Theme.Dark:
-                MainGrid.Background = Brush.Parse("#121212");
-                TitleText.Foreground = Brush.Parse("#E0E0E0");
-                ModsThingy.Background = Brush.Parse("#121212");
-                ModsThingy.BorderBrush = Brush.Parse("#2C2C2C");
-                MsgBox0Border.Background = Brush.Parse("#2C2C2C");
-                MessageBox0.Foreground = Brush.Parse("#E0E0E0");
-                break;
-            case MonkeModManager.Theme.Light:
-                MainGrid.Background = Brush.Parse("#FFFFFF");
-                TitleText.Foreground = Brush.Parse("#212121");
-                ModsThingy.Background = Brush.Parse("#FFFFFF");
-                ModsThingy.BorderBrush = Brush.Parse("#E0E0E0");
-                MsgBox0Border.Background = Brush.Parse("#E0E0E0");
-                MessageBox0.Foreground = Brush.Parse("#212121");
-                break;
-            case MonkeModManager.Theme.DarkHighContrast:
-                MainGrid.Background = Brush.Parse("#000000");
-                TitleText.Foreground = Brush.Parse("#FFFFFF");
-                ModsThingy.Background = Brush.Parse("#000000");
-                ModsThingy.BorderBrush = Brush.Parse("#FFFFFF");
-                MsgBox0Border.Background = Brush.Parse("#000000");
-                MessageBox0.Foreground = Brush.Parse("#FFFFFF");
-                break;
-            case MonkeModManager.Theme.Sunrise:
-                MainGrid.Background = Brush.Parse("#F5E0C3");
-                TitleText.Foreground = Brush.Parse("#4E342E");
-                ModsThingy.Background = Brush.Parse("#F5E0C3");
-                ModsThingy.BorderBrush = Brush.Parse("#D7CCC8");
-                MsgBox0Border.Background = Brush.Parse("#FFE0B2");
-                MessageBox0.Foreground = Brush.Parse("#6D4C41");
-                break;
-            case MonkeModManager.Theme.Frost:
-                MainGrid.Background = Brush.Parse("#D0E1F9");
-                TitleText.Foreground = Brush.Parse("#0D47A1");
-                ModsThingy.Background = Brush.Parse("#D0E1F9");
-                ModsThingy.BorderBrush = Brush.Parse("#90A4AE");
-                MsgBox0Border.Background = Brush.Parse("#BBDEFB");
-                MessageBox0.Foreground = Brush.Parse("#0D47A1");
-                break;
-        }
+        TitleText.Foreground = getTextTheme();
+        MessageBox0.Foreground = getTextTheme();
+        MainGrid.Background = getBGForTheme();
+        ModsThingy.Background = getBGForTheme();
+        MsgBox0Border.Background = GetCardBGS();
+        ModsThingy.BorderBrush = GetBorderBrush();
 
         InitForRPC();
         await CheckOrInstallBepInEx();
         await LoadModsFromTheNewGitHubRepoAsync();
+    }
+
+
+    private Window window;
+
+    private void ShowStartWindow()
+    {
+        var stackPanel = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var img = new Image
+        {
+            Width = 150,
+            Height = 150,
+            Source = new Bitmap(AssetLoader.Open(new Uri("avares://MonkeModManager/Assets/mmm-ico.png"))),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        stackPanel.Children.Add(img);
+
+        window = new Window
+        {
+            Content = stackPanel,
+            Width = 300,
+            Height = 350,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            CanResize = false,
+            ShowInTaskbar = false,
+            Background = getBGForTheme(),
+            SystemDecorations = SystemDecorations.None,
+            SizeToContent = SizeToContent.Manual
+        };
+        window.Show();
+    }
+
+    void closeStartWindow()
+    {
+        window.Close();
+    }
+    
+    public IBrush getBGForTheme()
+    {
+        return GetTheme() switch
+        {
+            MonkeModManager.Theme.Light => Brush.Parse("#FFFFFF"),
+            MonkeModManager.Theme.Dark => Brush.Parse("#121212"),
+            MonkeModManager.Theme.DarkHighContrast => Brush.Parse("#000000"),
+            MonkeModManager.Theme.Sunrise => Brush.Parse("#F5E0C3"),
+            MonkeModManager.Theme.Frost => Brush.Parse("#D0E1F9"),
+            _ => Brush.Parse("#FFFFFF")
+        };
+    }
+
+    public IBrush GetBorderBrush()
+    {
+        return GetTheme() switch
+        {
+            MonkeModManager.Theme.Light => Brush.Parse("#E0E0E0"),
+            MonkeModManager.Theme.Dark => Brush.Parse("#2C2C2C"),
+            MonkeModManager.Theme.DarkHighContrast => Brush.Parse("#FFFFFF"),
+            MonkeModManager.Theme.Sunrise => Brush.Parse("#D7CCC8"),
+            MonkeModManager.Theme.Frost => Brush.Parse("#90A4AE"),
+            _ => Brushes.Black
+        };
+    }
+
+    public IBrush GetCardBGS()
+    {
+        return GetTheme() switch
+        {
+            MonkeModManager.Theme.Light => Brush.Parse("#F9F9F9"),
+            MonkeModManager.Theme.Dark => Brush.Parse("#1F1F1F"),
+            MonkeModManager.Theme.DarkHighContrast => Brush.Parse("#000000"),
+            MonkeModManager.Theme.Sunrise => Brush.Parse("#FFE0B2"),
+            MonkeModManager.Theme.Frost => Brush.Parse("#BBDEFB"),
+            _ => Brush.Parse("#FFFFFF")
+        };
+    }
+
+    public IBrush getTextTheme()
+    {
+        return GetTheme() switch
+        {
+            MonkeModManager.Theme.Light => Brush.Parse("#212121"),
+            MonkeModManager.Theme.Dark => Brush.Parse("#E0E0E0"),
+            MonkeModManager.Theme.DarkHighContrast => Brush.Parse("#FFFFFF"),
+            MonkeModManager.Theme.Sunrise => Brush.Parse("#6D4C41"),
+            MonkeModManager.Theme.Frost => Brush.Parse("#0D47A1"),
+            _ => Brush.Parse("#FFFFFF")
+        };
+    }
+
+    public IBrush GetGroupText()
+    {
+        return GetTheme() switch
+        {
+            MonkeModManager.Theme.DarkHighContrast => Brush.Parse("#000000"),
+            _ => Brush.Parse("#FFFFFF")
+        };
+    }
+
+    public IBrush GetSecondaryText()
+    {
+        return GetTheme() switch
+        {
+            MonkeModManager.Theme.Light => Brush.Parse("#666666"),
+            MonkeModManager.Theme.Dark => Brush.Parse("#B0B0B0"),
+            MonkeModManager.Theme.DarkHighContrast => Brush.Parse("#FFFFFF"),
+            MonkeModManager.Theme.Sunrise => Brush.Parse("#6D4C41"),
+            MonkeModManager.Theme.Frost => Brush.Parse("#546E7A"),
+            _ => Brush.Parse("#FFFFFF")
+        };
     }
     void InitForRPC()
     {
@@ -208,7 +299,7 @@ public partial class MainWindow : Window
         return Path.Combine(folder, "config.json");
     }
 
-    private static Theme GetTheme()
+    public static Theme GetTheme()
     {
         try
         {
@@ -248,56 +339,66 @@ public partial class MainWindow : Window
     };
 
     public async Task LoadModsFromTheNewGitHubRepoAsync()
-{
-    using var client = new HttpClient();
-    const string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/modinfo.json";
-
-    try
     {
-        var json = await client.GetStringAsync(url);
-        var mods = JsonConvert.DeserializeObject<List<Mod>>(json);
-        Mods.Clear();
-        ItemControl0.Items.Clear();
+        using var client = new HttpClient();
+        const string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/modinfo.json";
 
-        if (mods != null)
+        try
         {
-            int loadedCount = 0;
-            int blacklistedCount = 0;
+            var json = await client.GetStringAsync(url);
+            var mods = JsonConvert.DeserializeObject<List<Mod>>(json);
+            Mods.Clear();
+            ItemControl0.Items.Clear();
 
-            var filtered = mods
-                .Where(m => !BlacklistedMods.Contains(m.Name, StringComparer.OrdinalIgnoreCase))
-                .ToList();
-
-            blacklistedCount = mods.Count - filtered.Count;
-
-            var grouped = filtered
-                .GroupBy(m => string.IsNullOrWhiteSpace(m.Group) ? "Uncategorized" : m.Group)
-                .OrderBy(g => g.Key);
-
-            foreach (var group in grouped)
+            if (mods != null)
             {
-                var header = new Label { Content = $"-- {group.Key} --" };
-                ItemControl0.Items.Add(header);
+                int loadedCount = 0;
+                int blacklistedCount = 0;
 
-                foreach (var mod in group.OrderBy(m => m.Name))
+                var filtered = mods
+                    .Where(m => !BlacklistedMods.Contains(m.Name, StringComparer.OrdinalIgnoreCase))
+                    .ToList();
+
+                blacklistedCount = mods.Count - filtered.Count;
+
+                var grouped = filtered
+                    .GroupBy(m => string.IsNullOrWhiteSpace(m.Group) ? "Uncategorized" : m.Group)
+                    .OrderBy(g => g.Key);
+
+                foreach (var group in grouped)
                 {
-                    Mods.Add(mod);
-                    var modControl = MakeModControl(mod);
-                    ItemControl0.Items.Add(modControl);
-                    loadedCount++;
-                }
-            }
+                    var textblock = new TextBlock
+                    {
+                        Text = $"-- {group.Key} --",
+                        Foreground = getTextTheme(),
+                        FontWeight = FontWeight.Bold
+                    };
+                    OtherGroupTextBlocks.Add(textblock);
 
-            Console.WriteLine($"loaded {loadedCount} mods, skipped {blacklistedCount} blacklisted mods");
-            // even counting!! not that anyone will read this but yeah
+                    var header = new Label { Content = textblock };
+                    ItemControl0.Items.Add(header);
+
+                    foreach (var mod in group.OrderBy(m => m.Name))
+                    {
+                        Mods.Add(mod);
+                        var modControl = MakeModControl(mod);
+                        ItemControl0.Items.Add(modControl);
+                        loadedCount++;
+                    }
+                }
+
+                Console.WriteLine($"loaded {loadedCount} mods, skipped {blacklistedCount} blacklisted mods");
+                // even counting!! not that anyone will read this but yeah
             }
         }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Loading mods failed: {ex.Message}");
-        await ShowErrorMessage("Couldn't load the mod list from GitHub.");
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Loading mods failed: {ex.Message}");
+            await ShowErrorMessage("Couldn't load the mod list from GitHub.");
+        }
+        closeStartWindow();
+        Opacity = 1;
     }
-}
     
     public async Task fixBepInExConfig()
     {
@@ -374,7 +475,50 @@ public partial class MainWindow : Window
         var config = new Config { GamePath = GetGamePath(), Theme = CurrentTheme };
         var json = JsonConvert.SerializeObject(config);
         File.WriteAllText(GetConfigPath(), json);
-        RestartApp();
+        
+        TitleText.Foreground = getTextTheme();
+        MessageBox0.Foreground = getTextTheme();
+        MainGrid.Background = getBGForTheme();
+        ModsThingy.Background = getBGForTheme();
+        MsgBox0Border.Background = GetCardBGS();
+        ModsThingy.BorderBrush = GetBorderBrush();
+        foreach (var border in modBorders)
+        {
+            border.border.Background = GetCardBGS();
+            border.border.BorderBrush = GetGroupColor(border.ModAssigned.Group);
+        }
+
+        if (textBlocks.Any())
+        {
+            foreach (var textBlock in textBlocks)
+            {
+                textBlock.Foreground = getTextTheme();
+            }
+        }
+
+        if (secondaryTextBlocks.Any())
+        {
+            foreach (var textBlock in secondaryTextBlocks)
+            {
+                textBlock.Foreground = GetSecondaryText();
+            }
+        }
+
+        if (GroupTextBlocks.Any())
+        {
+            foreach (var textBlock in GroupTextBlocks)
+            {
+                textBlock.Foreground = GetGroupText();
+            }
+        }
+
+        if (OtherGroupTextBlocks.Any())
+        {
+            foreach (var textBlock in OtherGroupTextBlocks)
+            {
+                textBlock.Foreground = getTextTheme();
+            }
+        }
     }
     void RestartApp()
     {
@@ -563,49 +707,26 @@ public partial class MainWindow : Window
         };
         
         modBorders.Add(thisBorder);
-        
-        switch (CurrentTheme)
+        border.Background = GetCardBGS();
+        nameTextBlock.Foreground = getTextTheme();
+        textBlocks.Add(nameTextBlock);
+        if (authorTextBlock != null)
         {
-            case MonkeModManager.Theme.Light:
-                border.Background = Brush.Parse("#F9F9F9");
-                nameTextBlock.Foreground = Brush.Parse("#212121");
-                if (authorTextBlock != null) authorTextBlock.Foreground = Brush.Parse("#212121");
-                if (dependenciesText != null) dependenciesText.Foreground = Brush.Parse("#666666");
-                if (groupText != null) groupText.Foreground = Brush.Parse("#FFFFFF");
-                urlTextBlock.Foreground = Brush.Parse("#212121");
-                break;
-            case MonkeModManager.Theme.Dark:
-                border.Background = Brush.Parse("#1F1F1F");
-                nameTextBlock.Foreground = Brush.Parse("#E0E0E0");
-                if (authorTextBlock != null) authorTextBlock.Foreground = Brush.Parse("#E0E0E0");
-                if (dependenciesText != null) dependenciesText.Foreground = Brush.Parse("#B0B0B0");
-                if (groupText != null) groupText.Foreground = Brush.Parse("#FFFFFF");
-                urlTextBlock.Foreground = Brush.Parse("#E0E0E0");
-                break;
-            case MonkeModManager.Theme.DarkHighContrast:
-                border.Background = Brush.Parse("#000000");
-                nameTextBlock.Foreground = Brush.Parse("#FFFFFF");
-                if (authorTextBlock != null) authorTextBlock.Foreground = Brush.Parse("#FFFFFF");
-                if (dependenciesText != null) dependenciesText.Foreground = Brush.Parse("#FFFFFF");
-                if (groupText != null) groupText.Foreground = Brush.Parse("#000000");
-                urlTextBlock.Foreground = Brush.Parse("#FFFFFF");
-                break;
-            case MonkeModManager.Theme.Sunrise:
-                border.Background = Brush.Parse("#FFE0B2");
-                nameTextBlock.Foreground = Brush.Parse("#4E342E");
-                if (authorTextBlock != null) authorTextBlock.Foreground = Brush.Parse("#4E342E");
-                if (dependenciesText != null) dependenciesText.Foreground = Brush.Parse("#6D4C41");
-                if (groupText != null) groupText.Foreground = Brush.Parse("#FFFFFF");
-                urlTextBlock.Foreground = Brush.Parse("#4E342E");
-                break;
-            case MonkeModManager.Theme.Frost:
-                border.Background = Brush.Parse("#BBDEFB");
-                nameTextBlock.Foreground = Brush.Parse("#0D47A1");
-                if (authorTextBlock != null) authorTextBlock.Foreground = Brush.Parse("#0D47A1");
-                if (dependenciesText != null) dependenciesText.Foreground = Brush.Parse("#546E7A");
-                if (groupText != null) groupText.Foreground = Brush.Parse("#FFFFFF");
-                urlTextBlock.Foreground = Brush.Parse("#0D47A1");
-                break;
+            authorTextBlock.Foreground = getTextTheme();
+            textBlocks.Add(authorTextBlock);
+        }
+        urlTextBlock.Foreground = getTextTheme();
+        textBlocks.Add(urlTextBlock);
+        if (dependenciesText != null)
+        {
+            dependenciesText.Foreground = GetSecondaryText();
+            secondaryTextBlocks.Add(dependenciesText);
+        }
+
+        if (groupText != null)
+        {
+            groupText.Foreground = GetGroupText();
+            GroupTextBlocks.Add(groupText);
         }
         ModControls.Add(border);
         return border;
@@ -1297,6 +1418,95 @@ public partial class MainWindow : Window
     }
     #endregion
     
+    #region Config Editor
+
+    public static async Task ShowConfigPickerAsync(Window parent, string GamePath)
+    {
+        string configDir = Path.Combine(GamePath, "BepInEx", "config");
+
+        var pickerWindow = new Window
+        {
+            Title = "Config Editor That Edits Config Files",
+            Width = 400,
+            Height = 600,
+            Background = Instance.getBGForTheme(),
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var stackPanel = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            Margin = new Thickness(10),
+            Spacing = 8
+        };
+
+        if (!Directory.Exists(configDir))
+        {
+            stackPanel.Children.Add(new TextBlock
+            {
+                Text = $"Directory not found:\n{configDir}",
+                Foreground = Brushes.Red
+            });
+        }
+        else
+        {
+            var cfgFiles = Directory.GetFiles(configDir, "*.cfg", SearchOption.TopDirectoryOnly);
+            if (cfgFiles.Length == 0)
+            {
+                stackPanel.Children.Add(new TextBlock
+                {
+                    Text = "No .cfg files found.",
+                    FontStyle = FontStyle.Italic,
+                    Foreground = Instance.getTextTheme()
+                });
+            }
+            else
+            {
+                foreach (var file in cfgFiles.OrderBy(Path.GetFileName))
+                {
+                    if (file.EndsWith("BepInEx.cfg")) continue;
+                    var btn = new Button
+                    {
+                        Content = Path.GetFileName(file),
+                        Foreground = Brushes.White,
+                        Background = Brush.Parse("#3F51B5"),
+                        Tag = file,
+                        HorizontalAlignment = HorizontalAlignment.Stretch
+                    };
+
+                    btn.Click += async (_, __) =>
+                    {
+                        try
+                        {
+                            var config = ConfigFile.Load(file);
+                            var editor = new ConfigEditorDialog(config);
+                            bool result = await editor.ShowDialog<bool>(pickerWindow);
+
+                            if (result)
+                            {
+                                config.Save(file);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+                    };
+
+                    stackPanel.Children.Add(btn);
+                }
+            }
+        }
+
+        pickerWindow.Content = new ScrollViewer
+        {
+            Content = stackPanel
+        };
+
+        await pickerWindow.ShowDialog(parent);
+    }
+    #endregion 
+
     #region Error Handling
     private async Task ShowErrorMessage(string message)
     {
@@ -1423,6 +1633,11 @@ public partial class MainWindow : Window
     {
         _ = InstallFromDisk();
     }
+    
+    private void Config_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _ = ShowConfigPickerAsync(this, GetGamePath());
+    }
 
     void OpenModsFolder_OnClick(object? sender, RoutedEventArgs e)
     {
@@ -1433,6 +1648,33 @@ public partial class MainWindow : Window
     void OpenGamePath_OnClick(object? sender, RoutedEventArgs e)
     {
         OpenFolder(gamePath);
+    }
+
+    void DisableAll_OnClick(object? sender, RoutedEventArgs e)
+    {
+        string dllPath = Path.Combine(gamePath, "winhttp.dll");
+        string disabledPath = Path.Combine(gamePath, "disabled.mods");
+        try
+        {
+            if (File.Exists(dllPath))
+            {
+                File.Move(dllPath, disabledPath);
+                Console.WriteLine("Mods disabled.");
+            }
+            else if (File.Exists(disabledPath))
+            {
+                File.Move(disabledPath, dllPath);
+                Console.WriteLine("Mods re-enabled.");
+            }
+            else
+            {
+                Console.WriteLine("No mods found to disable/enable.");
+            }
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"didnt work {ex}");
+        }
     }
 
     void InstallAll(object? sender, RoutedEventArgs e)
@@ -1504,3 +1746,4 @@ public class ModBorderThingyForDictionary
     public Mod ModAssigned { get; set; }
 }
 #endregion
+// you made it till the end!

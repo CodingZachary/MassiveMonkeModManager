@@ -23,4 +23,9 @@
         <PackageReference Include="DiscordRichPresence" Version="1.3.0.28" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Assets\mmm-ico.png" />
+      <AvaloniaResource Include="Assets\mmm-ico.png" />
+    </ItemGroup>
 </Project>
