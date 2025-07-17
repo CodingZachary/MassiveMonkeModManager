@@ -59,8 +59,9 @@
                         Name="ModsThingy">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                       HorizontalScrollBarVisibility="Disabled"
-                                      Padding="8">
-                                <ItemsControl Name="ItemControl0">
+                                      Padding="8"
+                                      Margin="0, 0, 0, 0">
+                                <ItemsControl Name="ItemControl0" Margin="0,0,0,0" Padding="0,0,0,35">
                                         <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
                                                         <StackPanel Spacing="6" />
