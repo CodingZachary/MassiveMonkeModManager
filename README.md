@@ -20,9 +20,9 @@ built over [AvaloniaUI](https://avaloniaui.net/)!
 
 ## Appearance
 ### Light Mode:
-![[Assets/light-showcase.png]]
+![light mode](https://github.com/arielthemonke/MonkeModManager/blob/main/Assets/light-showcase.png?raw=true)
 ### Dark Mode:
-![[Assets/dark-showcase.png]]
+![dark-showcase](https://github.com/arielthemonke/MonkeModManager/blob/main/Assets/dark-showcase.png?raw=true)
 And many more!
 
 ## Contribution
