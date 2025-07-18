@@ -1,2 +1,39 @@
-# MonkeModManager
-the first(?) gorilla tag mod manager built over AvaloniaUI, I'm new to Avalonia so its probably not the best utilization of Avalonia but its not winforms!
+# Monke Mod Manager
+A simple, fast, and cross-platform mod manager for "Gorilla Tag" mods.  
+Easily download, install, update, and manage your favorite mods with one click.
+built over [AvaloniaUI](https://avaloniaui.net/)!
+
+## Features
+- Mod Installing(obviously)
+- Mod Installing from disk
+- Mod Uninstalling
+- Launching the game from the manager(limited to steam only though)
+- Config Editor(allows you to configure mods right within the manager)
+- Disable/Enable mods(if you want to go back to vanilla while keeping your mods)
+- Pulls mods from [The-Graze Mod List](https://github.com/The-Graze/MonkeModInfo) which gets updated all the time so no broken mods!
+
+## Download
+| Platform | Link                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------- |
+| Windows  | https://github.com/arielthemonke/MonkeModManager/releases/latest/download/MonkeModManager.exe   |
+| Linux    | https://github.com/arielthemonke/MonkeModManager/releases/latest/download/MonkeModManager.Linux |
+
+## Appearance
+### Light Mode:
+![[Assets/light-showcase.png]]
+### Dark Mode:
+![[Assets/dark-showcase.png]]
+And many more!
+
+## Contribution
+Pull requests are more than welcome! I will accept most of them!
+
+## Legal
+
+### License
+This project is licensed under the MIT License – see the [LICENSE](https://github.com/arielthemonke/MonkeModManager/blob/main/LICENSE) file for details.
+
+### Notice
+>This product is not affiliated with Another Axiom Inc. or its videogames Gorilla Tag and Orion Drift and is not endorsed or otherwise sponsored by Another Axiom. Portions of the materials contained herein are property of Another Axiom. ©2021 Another Axiom Inc.
+
+Hope you enjoy this mod manager! :)

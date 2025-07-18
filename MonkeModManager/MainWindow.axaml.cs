@@ -28,7 +28,7 @@ namespace MonkeModManager;
 public partial class MainWindow : Window
 {
     #region Properties
-    public ObservableCollection<Mod> Mods { get; } = new();
+    public List<Mod> Mods { get; } = new();
     private string gamePath;
     private string pluginsPath;
     private readonly HttpClient httpClient = new();
@@ -102,16 +102,25 @@ public partial class MainWindow : Window
             await NewVersionDialog(newVersion);
         }
         CurrentTheme = GetTheme();
+        InitUI();
+
+        InitForRPC();
+        await CheckOrInstallBepInEx();
+        await LoadModsFromTheNewGitHubRepoAsync();
+    }
+
+    void InitUI()
+    {
         TitleText.Foreground = getTextTheme();
         MessageBox0.Foreground = getTextTheme();
         MainGrid.Background = getBGForTheme();
         ModsThingy.Background = getBGForTheme();
         MsgBox0Border.Background = GetCardBGS();
         ModsThingy.BorderBrush = GetBorderBrush();
-
-        InitForRPC();
-        await CheckOrInstallBepInEx();
-        await LoadModsFromTheNewGitHubRepoAsync();
+        SearchBox.Foreground = getTextTheme();
+        SearchBox.Background = GetCardBGS();
+        SortBox.Foreground = getTextTheme();
+        SortBox.Background = GetCardBGS();
     }
 
 
@@ -367,17 +376,7 @@ public partial class MainWindow : Window
 
                 foreach (var group in grouped)
                 {
-                    var textblock = new TextBlock
-                    {
-                        Text = $"-- {group.Key} --",
-                        Foreground = getTextTheme(),
-                        FontWeight = FontWeight.Bold
-                    };
-                    OtherGroupTextBlocks.Add(textblock);
-
-                    var header = new Label { Content = textblock };
-                    ItemControl0.Items.Add(header);
-
+                    AddHeader($"-- {group.Key} --");
                     foreach (var mod in group.OrderBy(m => m.Name))
                     {
                         Mods.Add(mod);
@@ -398,6 +397,88 @@ public partial class MainWindow : Window
         }
         closeStartWindow();
         Opacity = 1;
+    }
+    
+    private void SearchBox_OnTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        ApplyFilter(SearchBox.Text ?? "");
+    }
+    private void ApplyFilter(string query)
+    {
+        query = query.Trim().ToLowerInvariant();
+
+        ItemControl0.Items.Clear();
+
+        var filtered = string.IsNullOrWhiteSpace(query)
+            ? Mods.ToList()
+            : Mods.Where(m =>
+                    m.Name?.ToLowerInvariant().Contains(query) == true ||
+                    m.Author?.ToLowerInvariant().Contains(query) == true ||
+                    m.Group?.ToLowerInvariant().Contains(query) == true)
+                .ToList();
+
+        switch (SortBox.SelectedIndex)
+        {
+            case 0:
+                var grouped = filtered
+                    .GroupBy(m => string.IsNullOrWhiteSpace(m.Group) ? "Uncategorized" : m.Group)
+                    .OrderBy(g => g.Key);
+                foreach (var group in grouped)
+                {
+                    AddHeader($"-- {group.Key} --");
+                    foreach (var mod in group.OrderBy(m => m.Name))
+                        ItemControl0.Items.Add(MakeModControl(mod));
+                }
+                break;
+            case 1:
+                var groupedByLetter = filtered
+                    .GroupBy(m => string.IsNullOrWhiteSpace(m.Name) ? "#" : m.Name[0].ToString().ToUpperInvariant())
+                    .OrderBy(g => g.Key);
+                foreach (var group in groupedByLetter)
+                {
+                    AddHeader($"-- {group.Key} --");
+                    foreach (var mod in group.OrderBy(m => m.Name))
+                        ItemControl0.Items.Add(MakeModControl(mod));
+                }
+                break;
+
+            case 2:
+                var groupedByAuthor = filtered
+                    .GroupBy(m => string.IsNullOrWhiteSpace(m.Author) ? "Unknown Author" : m.Author)
+                    .OrderBy(g => g.Key);
+                foreach (var group in groupedByAuthor)
+                {
+                    AddHeader($"-- {group.Key} --");
+                    foreach (var mod in group.OrderBy(m => m.Name))
+                        ItemControl0.Items.Add(MakeModControl(mod));
+                }
+                break;
+
+            case 3:
+                foreach (var mod in filtered.OrderByDescending(m => m.Version))
+                    ItemControl0.Items.Add(MakeModControl(mod));
+                break;
+        }
+    }
+    private void AddHeader(string text)
+    {
+        var textBlock = new TextBlock
+        {
+            Text = text,
+            Foreground = getTextTheme(),
+            FontWeight = FontWeight.Bold,
+            Margin = new Thickness(0, 6, 0, 2)
+        };
+        ItemControl0.Items.Add(new Label { Content = textBlock });
+        OtherGroupTextBlocks.Add(textBlock);
+    }
+    
+    private void SortBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (Mods == null || ItemControl0 == null)
+            return;
+
+        ApplyFilter(SearchBox?.Text ?? "");
     }
     
     public async Task fixBepInExConfig()
@@ -476,12 +557,7 @@ public partial class MainWindow : Window
         var json = JsonConvert.SerializeObject(config);
         File.WriteAllText(GetConfigPath(), json);
         
-        TitleText.Foreground = getTextTheme();
-        MessageBox0.Foreground = getTextTheme();
-        MainGrid.Background = getBGForTheme();
-        ModsThingy.Background = getBGForTheme();
-        MsgBox0Border.Background = GetCardBGS();
-        ModsThingy.BorderBrush = GetBorderBrush();
+        InitUI();
         foreach (var border in modBorders)
         {
             border.border.Background = GetCardBGS();
@@ -520,30 +596,28 @@ public partial class MainWindow : Window
             }
         }
     }
-    void RestartApp()
+    
+    string GetRepoUrl(string fullUrl)
     {
+        if (string.IsNullOrEmpty(fullUrl))
+            return fullUrl;
         try
         {
-            var exePath = Environment.ProcessPath;
-            Process.Start(new ProcessStartInfo
+            var uri = new Uri(fullUrl);
+            var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            if (segments.Length >= 2)
             {
-                FileName = exePath,
-                UseShellExecute = true,
-            });
+                var owner = segments[0];
+                var repo = segments[1];
+                return $"{uri.Scheme}://{uri.Host}/{owner}/{repo}";
+            }
         }
-        catch (Exception e)
+        catch
         {
-            Console.WriteLine(e);
-            throw;
         }
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            desktop.Shutdown();
-        }
-        else
-        {
-            Environment.Exit(0);
-        }
+
+        return fullUrl;
     }
 
     private Border MakeModControl(Mod mod)
@@ -638,11 +712,27 @@ public partial class MainWindow : Window
             Foreground = isInstalled ? Brushes.Green : Brushes.Orange
         };
 
+        var openInGithub = new TextBlock()
+        {
+            Text = "Open In Github",
+            Foreground = GetSecondaryText(),
+            FontSize = 10,
+        };
+        openInGithub.PointerPressed += (s, e) =>
+        {
+            var githubLink = GetRepoUrl(mod.DownloadUrl);
+            if (!string.IsNullOrEmpty(githubLink))
+            {
+                Process.Start(new ProcessStartInfo(githubLink) { UseShellExecute = true });
+            }
+        };
+
         contentStack.Children.Add(nameTextBlock);
         contentStack.Children.Add(infoPanel);
         if (dependenciesText != null)
             contentStack.Children.Add(dependenciesText);
         contentStack.Children.Add(urlTextBlock);
+        contentStack.Children.Add(openInGithub);
         contentStack.Children.Add(statusText);
 
         var buttonStack = new StackPanel
@@ -722,6 +812,7 @@ public partial class MainWindow : Window
             dependenciesText.Foreground = GetSecondaryText();
             secondaryTextBlocks.Add(dependenciesText);
         }
+        secondaryTextBlocks.Add(openInGithub);
 
         if (groupText != null)
         {
@@ -1625,7 +1716,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            _ = ShowErrorMessage("Failed to launch game: " + ex.Message);
+            _ = ShowErrorMessage("Failed to launch game: " + ex.Message + "\nplease note that the launch game feature is steam only");
         }
     }
 

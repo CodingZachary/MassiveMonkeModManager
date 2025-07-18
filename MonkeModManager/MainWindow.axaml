@@ -38,7 +38,7 @@
                                         <MenuItem Header="Change Theme" Click="SwitchTheme"/>
                                         <MenuItem Header="Mods Folder" Click="OpenModsFolder_OnClick"/>
                                         <MenuItem Header="Game Folder" Click="OpenGamePath_OnClick"/>
-                                        <MenuItem Header="Launch Game" Click="LaunchBtn_OnClick"/>
+                                        <MenuItem Header="Launch Game(Steam Only)" Click="LaunchBtn_OnClick"/>
                                         <MenuItem Header="Disable/Enable Mods" Click="DisableAll_OnClick"/>
                                         <MenuItem Header="Config Editor" Click="Config_OnClick"/>
                                         <!--<MenuItem Header="Install All Mods" Click="InstallAll"/>-->
@@ -60,13 +60,31 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                       HorizontalScrollBarVisibility="Disabled"
                                       Padding="8">
-                                <ItemsControl Name="ItemControl0" Margin="0, 0, 0, 0" Padding="0, 0, 0, 35">
-                                        <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                        <StackPanel Spacing="6" />
-                                                </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                </ItemsControl>
+                                <StackPanel Spacing="8">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                                <TextBox Grid.Column="0"
+                                                         Name="SearchBox"
+                                                         Watermark="Search mods..."
+                                                         TextChanged="SearchBox_OnTextChanged" />
+                                                <ComboBox Grid.Column="1"
+                                                          Width="150"
+                                                          Margin="6, 0, 0, 0"
+                                                          SelectedIndex="0"
+                                                          SelectionChanged="SortBox_OnSelectionChanged"
+                                                          Name="SortBox">
+                                                        <ComboBoxItem Content="Group" />
+                                                        <ComboBoxItem Content="Alphabetical (A-Z)" />
+                                                        <ComboBoxItem Content="Author" />
+                                                </ComboBox>
+                                        </Grid>
+                                        <ItemsControl Name="ItemControl0" Margin="0, 0, 0, 0" Padding="0, 0, 0, 35">
+                                                <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                                <StackPanel Spacing="6" />
+                                                        </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                        </ItemsControl>
+                                </StackPanel>
                         </ScrollViewer>
                 </Border>
                 <Border Grid.Row="2" 
