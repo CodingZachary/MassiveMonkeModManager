@@ -131,7 +131,7 @@ public partial class MainWindow : Window
     {
         if (ModsDisabled())
         {
-            notificationManager.ShowNotification("Mods Disabled!", "Mods are currently disabled!");
+            notificationManager.ShowNotification("Mods Disabled!", "The mods will not function!");
         }
     }
     void InitUI()
@@ -282,6 +282,10 @@ public partial class MainWindow : Window
                 },
                 Details = "Modding",
                 State = "Installing Mods",
+                Assets = new Assets
+                {
+                    LargeImageKey = "mmm_ico",
+                }
             });
             Console.WriteLine($"[DiscordRPC] - RPC Set");
         };
@@ -1706,10 +1710,18 @@ public partial class MainWindow : Window
             {
                 foreach (var file in cfgFiles.OrderBy(Path.GetFileName))
                 {
-                    if (file.EndsWith("BepInEx.cfg")) continue;
+                    var text = "a";
+                    if (file.EndsWith("BepInEx.cfg"))
+                    {
+                        text = $"{Path.GetFileName(file)} - FOR EXPERIENCED USERS ONLY!";
+                    }
+                    else
+                    {
+                        text = Path.GetFileName(file);
+                    }
                     var btn = new Button
                     {
-                        Content = Path.GetFileName(file),
+                        Content = text,
                         Foreground = Brushes.White,
                         Background = Brush.Parse("#3F51B5"),
                         Tag = file,
