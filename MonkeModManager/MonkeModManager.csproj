@@ -27,5 +27,11 @@
     <ItemGroup>
       <None Remove="Assets\mmm-ico.png" />
       <AvaloniaResource Include="Assets\mmm-ico.png" />
+      <None Remove="Assets\menu-googlefonts.png" />
+      <None Remove="Assets\notifications-googlefonts.png" />
+      <None Remove="Assets\doorbell-google.png" />
+      <AvaloniaResource Include="Assets\doorbell-google.png" />
+      <None Remove="Assets\menu-google.png" />
+      <AvaloniaResource Include="Assets\menu-google.png" />
     </ItemGroup>
 </Project>

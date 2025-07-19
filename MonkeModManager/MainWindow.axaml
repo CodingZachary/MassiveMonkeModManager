@@ -25,13 +25,18 @@
                           HorizontalAlignment="Center" 
                           Margin="10,15,10,10" 
                           Foreground="DarkBlue" />
+                <Image Grid.Row="0" 
+                       Source="Assets/mmm-ico.png"
+                       Height="38"
+                       Width="38"
+                       Margin="0, 0, 280, 0"></Image>
                 <Button Grid.Row="0" Name="DropDownBtn" 
                         Margin="10"
-                        Height="35"
-                        Width="150"
-                        Background="#3F51B5"
+                        Background="Transparent"
                         Click="ShowDropdown_Click">
-                        <TextBlock Text="More Options" TextAlignment="Center" Foreground="White"/>
+                        <Image Name="MenuImage"
+                               Height="26"
+                               Width="26"/>
                         <Button.ContextMenu>
                                 <ContextMenu x:Name="BtnDropdown">
                                         <MenuItem Header="Install From Disk" Click="InstallFromDiskBtn_OnClick"/>
@@ -39,7 +44,8 @@
                                         <MenuItem Header="Mods Folder" Click="OpenModsFolder_OnClick"/>
                                         <MenuItem Header="Game Folder" Click="OpenGamePath_OnClick"/>
                                         <MenuItem Header="Launch Game(Steam Only)" Click="LaunchBtn_OnClick"/>
-                                        <MenuItem Name="DisableEnable" Header="Disable/Enable Mods" Click="DisableAll_OnClick"/>
+                                        <MenuItem Name="DisableEnable" Click="DisableAll_OnClick"/>
+                                        <MenuItem Header="Reset Game Path" Click="ResetGamePath_OnClick"/>
                                         <MenuItem Header="Config Editor" Click="Config_OnClick"/>
                                         <!--<MenuItem Header="Install All Mods" Click="InstallAll"/>-->
                                 </ContextMenu>

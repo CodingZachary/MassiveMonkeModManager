@@ -1,7 +1,6 @@
 #region usings
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -125,6 +124,7 @@ public partial class MainWindow : Window
         await LoadModsFromTheNewGitHubRepoAsync();
         MakeNotificationThing();
         SendNeededMesages();
+        MenuImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://MonkeModManager/Assets/menu-google.png")));
     }
 
     void SendNeededMesages()
@@ -857,15 +857,16 @@ public partial class MainWindow : Window
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(10)
         };
-
         var bellButton = new Button
         {
             Background = Brushes.Transparent,
             BorderBrush = null,
-            Content = new TextBlock
+            Content = new Image
             {
-                Text = "🔔", // not matching to UI emoji
-                FontSize = 24
+                Source = new Bitmap(AssetLoader.Open(new Uri("avares://MonkeModManager/Assets/doorbell-google.png"))),
+                Width = 28,
+                Height = 28,
+                Stretch = Stretch.Uniform
             }
         };
 
@@ -1939,8 +1940,19 @@ public partial class MainWindow : Window
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            Process.Start("xdg-open", Path);
+            Process.Start("xdg-open", $"\"{Path}\"");
         }
+    }
+    private void ResetGamePath_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _ = ChangeTheGamePathBecauseINeedTaskForSomeReason();
+    }
+
+    async Task ChangeTheGamePathBecauseINeedTaskForSomeReason()
+    {
+        var path = await ShowGamePathDialog();
+        await SaveConfig(path, GetTheme());
+        await CheckOrInstallBepInEx();
     }
     #endregion
 }
