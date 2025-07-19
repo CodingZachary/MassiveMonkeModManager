@@ -39,7 +39,7 @@
                                         <MenuItem Header="Mods Folder" Click="OpenModsFolder_OnClick"/>
                                         <MenuItem Header="Game Folder" Click="OpenGamePath_OnClick"/>
                                         <MenuItem Header="Launch Game(Steam Only)" Click="LaunchBtn_OnClick"/>
-                                        <MenuItem Header="Disable/Enable Mods" Click="DisableAll_OnClick"/>
+                                        <MenuItem Name="DisableEnable" Header="Disable/Enable Mods" Click="DisableAll_OnClick"/>
                                         <MenuItem Header="Config Editor" Click="Config_OnClick"/>
                                         <!--<MenuItem Header="Install All Mods" Click="InstallAll"/>-->
                                 </ContextMenu>

@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -41,6 +42,10 @@ public partial class MainWindow : Window
     List<TextBlock> GroupTextBlocks = new();
     List<TextBlock> OtherGroupTextBlocks = new();
     private static List<Border> ModControls = new();
+    private NotificationManager notificationManager = new();
+    private Border badgeBorder;
+    private TextBlock badgeText;
+    private Popup notificationPopup;
     #endregion
     
     #region Window And Init
@@ -63,6 +68,17 @@ public partial class MainWindow : Window
                 await ShowErrorMessage($"Initialization failed: {ex.Message}");
             }
         };
+    }
+
+    bool ModsDisabled()
+    {
+        if (File.Exists(Path.Combine(gamePath, "winhttp.dll")))
+        {
+            DisableEnable.Header = "Disable Mods";
+            return false;
+        }
+        DisableEnable.Header = "Enable Mods";
+        return true;
     }
 
     private async Task InitializeAsync()
@@ -107,8 +123,17 @@ public partial class MainWindow : Window
         InitForRPC();
         await CheckOrInstallBepInEx();
         await LoadModsFromTheNewGitHubRepoAsync();
+        MakeNotificationThing();
+        SendNeededMesages();
     }
 
+    void SendNeededMesages()
+    {
+        if (ModsDisabled())
+        {
+            notificationManager.ShowNotification("Mods Disabled!", "Mods are currently disabled!");
+        }
+    }
     void InitUI()
     {
         TitleText.Foreground = getTextTheme();
@@ -821,6 +846,131 @@ public partial class MainWindow : Window
         }
         ModControls.Add(border);
         return border;
+    }
+
+    void MakeNotificationThing()
+    {
+        var bellStack = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(10)
+        };
+
+        var bellButton = new Button
+        {
+            Background = Brushes.Transparent,
+            BorderBrush = null,
+            Content = new TextBlock
+            {
+                Text = "🔔", // not matching to UI emoji
+                FontSize = 24
+            }
+        };
+
+        bellButton.Click += BellButton_Click;
+        badgeBorder = new Border
+        {
+            Background = Brushes.Red,
+            CornerRadius = new CornerRadius(10),
+            Width = 20,
+            Height = 20,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Child = (badgeText = new TextBlock
+            {
+                Foreground = Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 12,
+                Text = "0"
+            }),
+            IsVisible = false
+        };
+        bellStack.Children.Add(bellButton);
+        bellStack.Children.Add(badgeBorder);
+
+        MainGrid.Children.Add(bellStack);
+        notificationPopup = new Popup
+        {
+            Placement = PlacementMode.Bottom,
+            PlacementTarget = bellButton,
+            Child = new Border
+            {
+                Background = Brushes.White,
+                CornerRadius = new CornerRadius(5),
+                Width = 250,
+                Padding = new Thickness(10),
+                Child = BuildNotificationList()
+            }
+        };
+
+        MainGrid.Children.Add(notificationPopup);
+        notificationManager.OnChanged += UpdateUI;
+    }
+    
+    private void BellButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        notificationPopup.IsOpen = !notificationPopup.IsOpen;
+
+        if (notificationPopup.IsOpen)
+            notificationManager.MarkAllAsRead();
+    }
+
+    private StackPanel BuildNotificationList()
+    {
+        var stack = new StackPanel();
+
+        foreach (var notif in notificationManager.Notifications)
+        {
+            var notifPanel = new StackPanel { Margin = new Thickness(5) };
+
+            var title = new TextBlock
+            {
+                Text = notif.Title,
+                FontWeight = FontWeight.Bold
+            };
+            var message = new TextBlock
+            {
+                Text = notif.Message,
+                FontSize = 12
+            };
+            notifPanel.Children.Add(message);
+            notifPanel.Children.Add(title);
+            stack.Children.Add(notifPanel);
+        }
+        return stack;
+    }
+
+    private void UpdateUI()
+    {
+        int unread = notificationManager.UnreadCount;
+
+        badgeText.Text = unread.ToString();
+        badgeBorder.IsVisible = unread > 0;
+        if (notificationPopup.Child is Border border && border.Child is StackPanel stack)
+        {
+            stack.Children.Clear();
+            foreach (var notif in notificationManager.Notifications)
+            {
+                var notifPanel = new StackPanel { Margin = new Thickness(5) };
+
+                notifPanel.Children.Add(new TextBlock
+                {
+                    Text = notif.Title,
+                    FontWeight = FontWeight.Bold
+                });
+
+                notifPanel.Children.Add(new TextBlock
+                {
+                    Text = notif.Message,
+                    FontSize = 12
+                });
+
+                stack.Children.Add(notifPanel);
+            }
+        }
     }
 
     private IBrush GetGroupColor(string group)
@@ -1747,15 +1897,19 @@ public partial class MainWindow : Window
         string disabledPath = Path.Combine(gamePath, "disabled.mods");
         try
         {
-            if (File.Exists(dllPath))
+            if (!ModsDisabled())
             {
                 File.Move(dllPath, disabledPath);
                 Console.WriteLine("Mods disabled.");
+                DisableEnable.Header = "Enable Mods";
+                SendNeededMesages();
             }
             else if (File.Exists(disabledPath))
             {
                 File.Move(disabledPath, dllPath);
                 Console.WriteLine("Mods re-enabled.");
+                DisableEnable.Header = "Disable Mods";
+                SendNeededMesages();
             }
             else
             {
