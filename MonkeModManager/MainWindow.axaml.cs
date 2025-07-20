@@ -1466,13 +1466,13 @@ public partial class MainWindow : Window
     {
         try
         {
-            var targetDirectory = Path.Combine(gamePath, "BepInEx/plugins");
             if (modPath == null)
             {
                 MessageBox0.Text = "Installing...";
+
                 var filePickerOptions = new FilePickerOpenOptions()
                 {
-                    Title = "Select File",
+                    Title = "Select Mod File",
                     AllowMultiple = false,
                     FileTypeFilter = new[]
                     {
@@ -1481,13 +1481,16 @@ public partial class MainWindow : Window
                 };
 
                 var files = await MainWin.StorageProvider.OpenFilePickerAsync(filePickerOptions);
-        
-                if (files == null || files.Count == 0)
-                    return;
+
+                if (files == null || files.Count == 0) return;
 
                 var selectedFile = files[0];
                 var fileName = selectedFile.Name;
                 var sourcePath = selectedFile.Path.LocalPath;
+                var modFolderName = Path.GetFileNameWithoutExtension(fileName);
+                var targetDirectory = Path.Combine(gamePath, "BepInEx", "plugins", modFolderName);
+
+                Directory.CreateDirectory(targetDirectory);
 
                 var targetPath = Path.Combine(targetDirectory, fileName);
                 File.Copy(sourcePath, targetPath, overwrite: true);
@@ -1496,19 +1499,25 @@ public partial class MainWindow : Window
             }
             else
             {
-                string output = Path.Combine(targetDirectory, $"Mod{DateTime.Now.ToString("HH:mm:ss")}");
-                File.Copy(modPath, output, overwrite: true);
+                var fileName = Path.GetFileName(modPath);
+                var modFolderName = Path.GetFileNameWithoutExtension(fileName);
+                var targetDirectory = Path.Combine(gamePath, "BepInEx", "plugins", modFolderName);
 
-                MessageBox0.Text = $"Successfully installed to {output}!";
+                Directory.CreateDirectory(targetDirectory);
+
+                var targetPath = Path.Combine(targetDirectory, fileName);
+                File.Copy(modPath, targetPath, overwrite: true);
+
+                MessageBox0.Text = $"Successfully installed {fileName}!";
             }
         }
         catch (Exception ex)
         {
             await ShowErrorMessage($"Failed to install from disk: {ex.Message}");
-        
             MessageBox0.Text = "Installation failed";
         }
     }
+
 
     private async Task SilentInstall(string url)
     {
