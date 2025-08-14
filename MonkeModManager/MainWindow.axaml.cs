@@ -1035,7 +1035,8 @@ public partial class MainWindow : Window
 
             if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
-                var trackingFile = Path.Combine(targetDirectory, $".{mod.Name}_installed.txt");
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var trackingFile = Path.Combine(appData, "MonkeModManager", $".{mod.Name}_installed.txt");
                 return File.Exists(trackingFile);
             }
             else
@@ -1161,7 +1162,8 @@ public partial class MainWindow : Window
                     }
                 }
                 
-                var trackingFile = Path.Combine(targetDirectory, $".{mod.Name}_installed.txt");
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var trackingFile = Path.Combine(appData, "MonkeModManager", $".{mod.Name}_installed.txt");
                 await File.WriteAllLinesAsync(trackingFile, installedFiles);
                 
                 if (File.Exists(downloadPath))
@@ -1259,7 +1261,8 @@ public partial class MainWindow : Window
             {
                 if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
-                    var trackingFile = Path.Combine(targetDirectory, $".{mod.Name}_installed.txt");
+                    var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                    var trackingFile = Path.Combine(appData, "MonkeModManager", $".{mod.Name}_installed.txt");
                     
                     if (File.Exists(trackingFile))
                     {
