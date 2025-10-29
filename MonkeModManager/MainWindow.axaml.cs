@@ -379,7 +379,7 @@ public partial class MainWindow : Window
     public async Task LoadModsFromTheNewGitHubRepoAsync()
     {
         using var client = new HttpClient();
-        const string url = "https://raw.githubusercontent.com/The-Graze/MonkeModInfo/master/modinfo.json";
+        const string url = "https://raw.githubusercontent.com/CodingZachary/MassiveMonkeModInfo/refs/heads/master/modinfo.json";
 
         try
         {

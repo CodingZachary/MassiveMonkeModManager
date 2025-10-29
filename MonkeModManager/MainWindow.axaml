@@ -41,7 +41,7 @@
                                 <ContextMenu x:Name="BtnDropdown">
                                         <MenuItem Header="Install From Disk" Click="InstallFromDiskBtn_OnClick"/>
                                         <MenuItem Header="Change Theme" Click="SwitchTheme"/>
-                                        <MenuItem Header="Mods Folder" Click="OpenModsFolder_OnClick"/>
+                                        <MenuItem Header="Mods Folder yay" Click="OpenModsFolder_OnClick"/>
                                         <MenuItem Header="Game Folder" Click="OpenGamePath_OnClick"/>
                                         <MenuItem Header="Launch Game(Steam Only)" Click="LaunchBtn_OnClick"/>
                                         <MenuItem Name="DisableEnable" Click="DisableAll_OnClick"/>
